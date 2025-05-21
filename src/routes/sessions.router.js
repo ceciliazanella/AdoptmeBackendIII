@@ -5,12 +5,12 @@ import logger from "../utils/logger.js";
 const router = Router();
 
 router.post("/register", (req, res, next) => {
-  logger.info("POST /api/sessions/register - Para Registro de un Usuario...");
+  logger.info("POST /api/sessions/register - Registrando Usuario...");
   sessionsController.register(req, res, next);
 });
 
 router.post("/login", (req, res, next) => {
-  logger.info("POST /api/sessions/login - Para Inicio de Sesión...");
+  logger.info("POST /api/sessions/login - Iniciando Sesión...");
   sessionsController.login(req, res, next);
 });
 

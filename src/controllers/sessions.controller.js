@@ -39,7 +39,7 @@ const register = async (req, res, next) => {
 
     const result = await usersService.create(user);
 
-    logger.info(`✅ Usuario Registrado Éxitosamente! ${email}`);
+    logger.info(`✅ Usuario ${email} Registrado Éxitosamente!`);
 
     res.send({ status: "success", payload: result._id });
   } catch (error) {
@@ -103,7 +103,7 @@ const current = async (req, res) => {
     const user = jwt.verify(cookie, "tokenSecretJWT");
 
     if (user) {
-      logger.info(`✅ Token Válido para el Usuario ${user.email}`);
+      logger.info(`✅ Token Válido para el Usuario ${user.email}!`);
       return res.send({ status: "success", payload: user });
     }
   } catch (error) {
@@ -128,7 +128,9 @@ const unprotectedLogin = async (req, res, next) => {
     const user = await usersService.getUserByEmail(email);
 
     if (!user) {
-      logger.warning(`❌ Unprotected Login: Usuario no encontrado... ${email}`);
+      logger.warning(
+        `❌ Unprotected Login: Usuario ${email} no se encuentra...`
+      );
       return next(
         new CustomError(404, "El Usuario no existe...", { field: "email" })
       );
@@ -137,7 +139,9 @@ const unprotectedLogin = async (req, res, next) => {
     const isValidPassword = await passwordValidation(user, password);
 
     if (!isValidPassword) {
-      logger.warning(`❌ Unprotected Login: Contraseña Incorrecta... ${email}`);
+      logger.warning(
+        `❌ Unprotected Login: La Contraseña de ${email} es Incorrecta... `
+      );
       return next(
         new CustomError(400, "Contraseña Incorrecta...", { field: "password" })
       );
@@ -145,13 +149,13 @@ const unprotectedLogin = async (req, res, next) => {
 
     const token = jwt.sign(user, "tokenSecretJWT", { expiresIn: "1h" });
 
-    logger.info(`✅ Unprotected Login Éxitoso ${email}!`);
+    logger.info(`✅ Unprotected Login para ${email} Éxitoso!`);
 
     res
       .cookie("unprotectedCookie", token, { maxAge: 3600000 })
       .send({ status: "success", message: "Unprotected Logged in..." });
   } catch (error) {
-    logger.error("❌ Error en unprotectedLogin...", error);
+    logger.error("❌ Hubo un Error en UnprotectedLogin...", error);
     next(error);
   }
 };
@@ -167,7 +171,7 @@ const unprotectedCurrent = async (req, res) => {
       return res.send({ status: "success", payload: user });
     }
   } catch (error) {
-    logger.warning("❌ Token Inválido en unprotectedCurrent...");
+    logger.warning("❌ Token Inválido en UnprotectedCurrent...");
     return res.status(401).send({ status: "error", error: "Unauthorized..." });
   }
 };

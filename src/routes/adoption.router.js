@@ -5,20 +5,20 @@ import logger from "../utils/logger.js";
 const router = Router();
 
 router.get("/", (req, res, next) => {
-  logger.info("GET /api/adoptions - Para Obtener todas las Adopciones...");
+  logger.info("GET /api/adoptions - Mostrando todas las Adopciones...");
   adoptionsController.getAllAdoptions(req, res, next);
 });
 
 router.get("/:aid", (req, res, next) => {
   logger.info(
-    `GET /api/adoptions/${req.params.aid} - Para Obtener una Adopción por ID...`
+    `GET /api/adoptions/${req.params.aid} - Obteniendo Adopción por ID...`
   );
   adoptionsController.getAdoption(req, res, next);
 });
 
 router.post("/:uid/:pid", (req, res, next) => {
   logger.info(
-    `POST /api/adoptions/${req.params.uid}/${req.params.pid} - Para Crear una Nueva Adopción...`
+    `POST /api/adoptions/${req.params.uid}/${req.params.pid} - Creando una Nueva Adopción...`
   );
   adoptionsController.createAdoption(req, res, next);
 });

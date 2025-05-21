@@ -12,7 +12,7 @@ router.get("/mockingusers", (req, res, next) => {
   try {
     const users = generateMockUsers(50);
 
-    logger.info("✅ Se Generaron 50 Usuarios Falsos para Prueba!");
+    logger.info("✅ Se Generaron 50 Usuarios Falsos a Modo de Prueba!");
     res.json({ status: "success", payload: users });
   } catch (error) {
     logger.error(
@@ -59,7 +59,7 @@ router.post("/generateData", async (req, res, next) => {
     const createdPets = await PetModel.insertMany(mockPets);
 
     logger.info(
-      `✅ Insertados ${createdUsers.length} usuarios y ${createdPets.length} mascotas...`
+      `✅ Se Incertaron ${createdUsers.length} Usuarios y ${createdPets.length} Mascotas...`
     );
 
     res.json({
