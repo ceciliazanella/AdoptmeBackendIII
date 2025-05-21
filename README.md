@@ -5,3 +5,5 @@ $env:NODE_ENV="production"; node src/app.js
 
 Para Modo Desarrollo -Sólo en Consola con Colores-:
 $env:NODE_ENV="development"; node src/app.js
+
+### - En Consola PowerShell + Windows -
