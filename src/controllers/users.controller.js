@@ -1,65 +1,108 @@
 import { usersService } from "../services/index.js";
+import UserDTO from "../dto/User.dto.js";
+import { CustomError } from "../middlewares/errorHandler.js";
+import logger from "../utils/logger.js";
 import { Errors } from "../utils/errors.js";
 
-const getAllUsers = async (req, res) => {
+const getAllUsers = async (req, res, next) => {
   try {
     const users = await usersService.getAll();
 
-    res.send({ status: "success", payload: users });
+    const result = users.map((user) => UserDTO.getUserTokenFrom(user));
+
+    logger.info("✅ Los Usuarios se Obtuvieron Correctamente!");
+    res.send({ status: "success", payload: result });
   } catch (error) {
-    res.status(500).send(Errors.GENERAL.SERVER_ERROR);
+    logger.error("❌ Hubo un Error al querer Obtener a los Usuarios...", error);
+    next(new CustomError(500, Errors.GENERAL.SERVER_ERROR.message));
   }
 };
 
-const getUser = async (req, res) => {
+const getUser = async (req, res, next) => {
   try {
     const userId = req.params.uid;
 
     const user = await usersService.getUserById(userId);
 
-    if (!user) return res.status(404).send(Errors.USER.AUTHENTICATION_FAILED);
-    res.send({ status: "success", payload: user });
+    if (!user) {
+      logger.warning(
+        `❌ El Usuario con ID ${userId} no se encontró en la Base de Datos...`
+      );
+      return next(new CustomError(404, Errors.USER.NOT_FOUND.message));
+    }
+
+    const userDTO = UserDTO.getUserTokenFrom(user);
+
+    logger.info(`✅ El Usuario con ID ${userId} se Obtuvo con Éxito!`);
+    res.send({ status: "success", payload: userDTO });
   } catch (error) {
-    res.status(500).send(Errors.GENERAL.SERVER_ERROR);
+    logger.error("❌ Hubo un Error al querer Obtener al Usuario...", error);
+    next(new CustomError(500, Errors.GENERAL.SERVER_ERROR.message));
   }
 };
 
-const updateUser = async (req, res) => {
+const updateUser = async (req, res, next) => {
   try {
+    const userId = req.params.uid;
+
     const updateBody = req.body;
 
-    const userId = req.params.uid;
-
     const user = await usersService.getUserById(userId);
 
-    if (!user) return res.status(404).send(Errors.USER.AUTHENTICATION_FAILED);
+    if (!user) {
+      logger.warning(
+        `❌ No se encontró al Usuario con ID ${userId} para poder Actualizar sus Datos...`
+      );
+      return next(new CustomError(404, Errors.USER.NOT_FOUND.message));
+    }
+
     await usersService.update(userId, updateBody);
+
+    logger.info(
+      `✅ El Usuario con ID ${userId} fue Actualizado Correctamente!`
+    );
     res.send({
       status: "success",
-      message: "Datos de Usuario Actualizados...",
+      message: "Usuario Actualizado Correctamente!",
     });
   } catch (error) {
-    res.status(500).send(Errors.GENERAL.SERVER_ERROR);
+    logger.error(
+      "❌ Hubo un Error al querer Actualizar los Datos del Usuario...",
+      error
+    );
+    next(new CustomError(500, Errors.GENERAL.SERVER_ERROR.message));
   }
 };
 
-const deleteUser = async (req, res) => {
+const deleteUser = async (req, res, next) => {
   try {
     const userId = req.params.uid;
 
     const user = await usersService.getUserById(userId);
 
-    if (!user) return res.status(404).send(Errors.USER.AUTHENTICATION_FAILED);
+    if (!user) {
+      logger.warning(
+        `❌ No se encontró al Usuario con ID ${userId} en la Base de Datos para poder Eliminarlo...`
+      );
+      return next(new CustomError(404, Errors.USER.NOT_FOUND.message));
+    }
+
     await usersService.delete(userId);
-    res.send({ status: "success", message: "Usuario Eliminado..." });
+
+    logger.info(`✅ El Usuario con ID ${userId} fue Eliminado Correctamente!`);
+    res.send({
+      status: "success",
+      message: "Usuario Eliminado Correctamente.",
+    });
   } catch (error) {
-    res.status(500).send(Errors.GENERAL.SERVER_ERROR);
+    logger.error("❌ Hubo un Error al querer Eliminar al Usuario...", error);
+    next(new CustomError(500, Errors.GENERAL.SERVER_ERROR.message));
   }
 };
 
 export default {
-  deleteUser,
   getAllUsers,
   getUser,
   updateUser,
+  deleteUser,
 };

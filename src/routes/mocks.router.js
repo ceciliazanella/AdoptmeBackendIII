@@ -1,29 +1,55 @@
 import { Router } from "express";
-import { generateMockUsers } from "../utils/mocking.utils.js";
+import { generateMockUsers } from "../utils/mockingUsers.js";
+import { generateMockPets } from "../utils/mockingPets.js";
 import UserModel from "../dao/models/User.js";
 import PetModel from "../dao/models/Pet.js";
-import { generateMockPets } from "../utils/mocking.utils.js";
+import logger from "../utils/logger.js";
 
 const router = Router();
 
-// GET /api/mocks/mockingusers - Genera 50 Usuarios Falsos
-router.get("/mockingusers", (req, res) => {
-  const users = generateMockUsers(50);
+// GET /api/mocks/mockingusers - Genera 50 Usuarios Falsos...
+router.get("/mockingusers", (req, res, next) => {
+  try {
+    const users = generateMockUsers(50);
 
-  res.json({ status: "success", payload: users });
+    logger.info("✅ Se Generaron 50 Usuarios Falsos para Prueba!");
+    res.json({ status: "success", payload: users });
+  } catch (error) {
+    logger.error(
+      "❌ Hubo un Error al querer Generar Usuarios en Modo Mock...",
+      error
+    );
+    next(error);
+  }
 });
 
-router.get("/mockingpets", (req, res) => {
-  const pets = generateMockPets(100);
+// GET /api/mocks/mockingpets - Genera 100 Mascotas Falsas (o la Cantidad que se Indique...)
+router.get("/mockingpets", (req, res, next) => {
+  try {
+    const qty = parseInt(req.query.qty) || 100;
 
-  res.json({ status: "success", payload: pets });
+    const pets = generateMockPets(qty);
+
+    logger.info(`✅ Se Generaron ${qty} Mascotas Falsas para Prueba...`);
+    res.json({ status: "success", payload: pets });
+  } catch (error) {
+    logger.error(
+      "❌ Hubo un Error al querer Generar Las Mascotas Mock...",
+      error
+    );
+    next(error);
+  }
 });
 
-// POST /api/mocks/generateData?users=10&pets=20 - Guarda a los Usuarios y a las Mascotas
-router.post("/generateData", async (req, res) => {
+// POST /api/mocks/generateData?users=10&pets=20 - Guarda a los Usuarios y a las Mascotas en la Base de Datos / Mongo...
+router.post("/generateData", async (req, res, next) => {
   const { users = 0, pets = 0 } = req.query;
 
   try {
+    logger.info(
+      `Generando e Insertando ${users} Usuarios y ${pets} Mascotas...`
+    );
+
     const mockUsers = generateMockUsers(Number(users));
 
     const createdUsers = await UserModel.insertMany(mockUsers);
@@ -31,6 +57,10 @@ router.post("/generateData", async (req, res) => {
     const mockPets = generateMockPets(Number(pets));
 
     const createdPets = await PetModel.insertMany(mockPets);
+
+    logger.info(
+      `✅ Insertados ${createdUsers.length} usuarios y ${createdPets.length} mascotas...`
+    );
 
     res.json({
       status: "success",
@@ -40,21 +70,32 @@ router.post("/generateData", async (req, res) => {
       },
     });
   } catch (error) {
-    res.status(500).json({ status: "error", message: error.message });
+    logger.error(
+      "❌ Hubo un Error al querer Insertar los Datos de Prueba...",
+      error.message
+    );
+    next(error);
   }
 });
 
-router.get("/generateData/test", async (req, res) => {
+// GET /api/mocks/generateData/test - Revisión de Datos (No los guarda...)
+router.get("/generateData/test", async (req, res, next) => {
   try {
     const mockUsers = generateMockUsers(5);
 
     const mockPets = generateMockPets(5);
 
+    logger.info(
+      "✅ Se Generaron 5 Usuarios y 5 Mascotas para Prueba sin Guardar..."
+    );
+
     res.json({ users: mockUsers, pets: mockPets });
   } catch (error) {
-    res
-      .status(500)
-      .json({ error: "Hubo un Error al Generar Datos de Prueba..." });
+    logger.error(
+      "❌ Error al querer Generar Datos de Prueba...",
+      error.message
+    );
+    next(error);
   }
 });
 

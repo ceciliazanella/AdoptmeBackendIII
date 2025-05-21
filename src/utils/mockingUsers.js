@@ -13,12 +13,3 @@ export const generateMockUsers = (count = 1) => {
     pets: [],
   }));
 };
-
-export const generateMockPets = (count = 1) => {
-  return Array.from({ length: count }).map(() => ({
-    name: faker.animal.cat(),
-    specie: faker.animal.type(),
-    birthDate: faker.date.birthdate(),
-    adopted: faker.datatype.boolean(),
-  }));
-};

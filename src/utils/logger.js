@@ -63,7 +63,7 @@ const buildLogger = (env) => {
       );
     } catch (err) {
       console.error(
-        "Hubo un Error al querer Crear el Transport de Archivo:",
+        "Hubo un Error al querer Crear el Transporte de Archivo...",
         err
       );
     }

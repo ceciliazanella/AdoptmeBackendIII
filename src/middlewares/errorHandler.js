@@ -1,4 +1,4 @@
-import { Errors } from "./errors.js";
+import { Errors } from "../utils/errors.js";
 
 class CustomError extends Error {
   constructor(status, message, details) {
@@ -7,6 +7,7 @@ class CustomError extends Error {
     this.details = details;
   }
 }
+
 // Middleware para el Manejo de Errores
 const errorHandler = (err, req, res, next) => {
   if (err instanceof CustomError) {

@@ -1,16 +1,26 @@
 import { faker } from "@faker-js/faker";
 
 export const generateMockPets = (numPets) => {
-  let pets = [];
+  const pets = [];
 
   for (let i = 0; i < numPets; i++) {
+    const specie = faker.helpers.arrayElement(["Dog", "Cat"]);
+
+    const breed = specie === "Dog" ? faker.animal.dog() : faker.animal.cat();
+
+    const image = faker.image.urlPicsumPhotos({ category: "animals" });
+
     pets.push({
-      name: faker.animal.dog(),
-      specie: faker.animal.type(),
-      birthDate: faker.date.past(),
+      _id: faker.database.mongodbObjectId(),
+      name: faker.person.firstName(),
+      specie,
+      breed,
+      birthDate: faker.date.past({ years: 15 }),
       adopted: false,
-      image: faker.image.animals(),
+      owner: null,
+      image,
     });
   }
+
   return pets;
 };

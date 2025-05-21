@@ -2,32 +2,52 @@ import { Router } from "express";
 import petsController from "../controllers/pets.controller.js";
 import uploader from "../utils/uploader.js";
 import { generateMockPets } from "../utils/mockingPets.js";
+import logger from "../utils/logger.js";
 
 const router = Router();
-// Obtener Todas las Mascotas
-router.get("/", petsController.getAllPets);
-// Crear Nueva Mascota
-router.post("/", petsController.createPet);
-// Crear Nueva Mascota con Imagen
-router.post(
-  "/withimage",
-  uploader.single("image"),
-  petsController.createPetWithImage
-);
-// Actualizar Mascota
-router.put("/:pid", petsController.updatePet);
-// Eliminar Mascota
-router.delete("/:pid", petsController.deletePet);
-// Endpoint para generar 100 Mascotas Aleatoriamente
+
+router.get("/", (req, res, next) => {
+  logger.info("GET /api/pets - Para Obtener Todas las Mascotas...");
+  petsController.getAllPets(req, res, next);
+});
+
+router.post("/", (req, res, next) => {
+  logger.info("POST /api/pets - Para Crear una Nueva Mascota...");
+  petsController.createPet(req, res, next);
+});
+
+router.post("/withimage", uploader.single("image"), (req, res, next) => {
+  logger.info(
+    "POST /api/pets/withimage - Para Crear una Mascota con su Imagen..."
+  );
+  petsController.createPetWithImage(req, res, next);
+});
+
+router.put("/:pid", (req, res, next) => {
+  logger.info(`PUT /api/pets/${req.params.pid} - Para Actualizar Mascota...`);
+  petsController.updatePet(req, res, next);
+});
+
+router.delete("/:pid", (req, res, next) => {
+  logger.info(`DELETE /api/pets/${req.params.pid} - Para Eliminar Mascota...`);
+  petsController.deletePet(req, res, next);
+});
+
 router.get("/mockingpets", (req, res) => {
   try {
+    logger.info(
+      "GET /api/pets/mockingpets - Para Generar 100 Mascotas Tipo Mock..."
+    );
     const mockPets = generateMockPets(100);
 
     res.status(200).json(mockPets);
   } catch (error) {
+    logger.error("❌ Error al querer Generar Mscotas Mock...", error.message);
     res
       .status(500)
-      .json({ message: "Hubo un Error al Generar Mascotas Tipo Mock..." });
+      .json({
+        message: "Hubo un Error al querer Generar Mascotas Tipo Mock...",
+      });
   }
 });
 

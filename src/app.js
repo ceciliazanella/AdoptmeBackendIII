@@ -6,12 +6,13 @@ import usersRouter from "./routes/users.router.js";
 import petsRouter from "./routes/pets.router.js";
 import adoptionsRouter from "./routes/adoption.router.js";
 import sessionsRouter from "./routes/sessions.router.js";
-import { errorHandler } from "./utils/errorHandler.js";
+import { errorHandler } from "./middlewares/errorHandler.js";
 import addLogger from "./middlewares/addLogger.js";
 import logger from "./utils/logger.js";
 import mocksRouter from "./routes/mocks.router.js";
 
 dotenv.config();
+
 /*
 Para activar el Modo Producción -Y que se genere Archivo errors.log en la Carpeta logs-, 
 la App se ejecuta con:
@@ -20,13 +21,16 @@ $env:NODE_ENV="production"; node src/app.js
 Para Modo Desarrollo -Sólo en Consola con Colores-:
 $env:NODE_ENV="development"; node src/app.js
 */
+
 const app = express();
 
 const PORT = process.env.PORT || 8080;
 
 const MONGO_URI = process.env.MONGO_URI;
+
 // Middleware de Logger
 app.use(addLogger);
+
 // Conexión a Mongo con Logger
 mongoose
   .connect(MONGO_URI)
@@ -54,9 +58,10 @@ app.get("/loggerTest", (req, res) => {
   req.logger.fatal("Esto es un Error Fatal!");
 
   res.send(
-    "Los Logs fueron Generados! 🚀 Ver en Consola y logs/errors.log si el Entorno es de Producción..."
+    "Los Logs fueron Generados! 🚀 Ver en la Consola y en el Archivo logs/errors.log si el Entorno corresponde a Producción..."
   );
 });
+
 // Middleware para Errores
 app.use(errorHandler);
 
