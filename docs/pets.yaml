@@ -1,0 +1,227 @@
+openapi: 3.0.3
+info:
+  title: API Pets
+  version: 1.0.0
+  description: Gestión para las Mascotas en la Base de Datos.
+
+tags:
+  - name: Pets
+    description: Gestión de Mascotas.
+
+paths:
+  /pets:
+    get:
+      summary: Obtención de Todas las Mascotas Registradas en la Base de Datos.
+      tags:
+        - Pets
+      responses:
+        "200":
+          description: Devuelve una Lista de Mascotas.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Pet"
+        "500":
+          description: Se Produjo un Error Interno del Servidor...
+
+    post:
+      summary: Registración / Creación de una Nueva Mascota (Sin Imagen).
+      tags:
+        - Pets
+      requestBody:
+        required: true
+        description: Datos para poder Registrar / Crear una Nueva Mascota.
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - specie
+                - birthDate
+              properties:
+                name:
+                  type: string
+                  example: "Pumba"
+                specie:
+                  type: string
+                  example: "Canino"
+                birthDate:
+                  type: string
+                  format: date
+                  example: "2016-04-10"
+      responses:
+        "201":
+          description: La Mascota fue Registrada / Creada con Éxito!
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Pet"
+        "400":
+          description: Los Datos Ingresados son Inválidos o están Incompletos...
+        "500":
+          description: Se Produjo un Error Interno del Servidor...
+
+  /pets/withimage:
+    post:
+      summary: Creación / Registración de una Nueva Mascota (Con Imagen).
+      tags:
+        - Pets
+      requestBody:
+        required: true
+        description: Formulario para poder Registrar / Crear una Nueva Mascota con su Imagen.
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - name
+                - specie
+                - birthDate
+                - image
+              properties:
+                name:
+                  type: string
+                  example: "Olivia"
+                specie:
+                  type: string
+                  example: "Felino"
+                birthDate:
+                  type: string
+                  format: date
+                  example: "2014-04-13"
+                image:
+                  type: string
+                  format: binary
+      responses:
+        "201":
+          description: La Mascota fue Registrada / Creada con su Imagen Correctamente!
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Pet"
+        "400":
+          description: Los Datos Ingresados son Inválidos o Falta la Imagen de la Mascota...
+        "500":
+          description: Se Produjo un Error Interno del Servidor...
+
+  /pets/{pid}:
+    put:
+      summary: Actualización / Modificación de los Datos de una Mascota ya Existente en la Base de Datos.
+      tags:
+        - Pets
+      parameters:
+        - name: pid
+          in: path
+          required: true
+          description: ID de Identificación de la Mascota a Actualizar / Modificar.
+          schema:
+            type: string
+            example: "60f71adf3b1d4c001c8b4567"
+      requestBody:
+        required: true
+        description: Campos de Datos a Actualizar / Modificar (Al menos uno).
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PetUpdate"
+      responses:
+        "200":
+          description: La Mascota fue Actualizada / Modificada Correctamente!
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Pet"
+        "400":
+          description: Los Datos son Inválidos...
+        "404":
+          description: La Mascota no fue Encontrada o no Existe en la Base de Datos...
+        "500":
+          description: Se Produjo un Error Interno del Servidor...
+
+    delete:
+      summary: Eliminación de una Mascota Registrada mediante su ID.
+      tags:
+        - Pets
+      parameters:
+        - name: pid
+          in: path
+          required: true
+          description: ID de la Mascota.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: La Mascota fue Eliminada con Éxito!
+        "404":
+          description: La Mascota no fue Encontrada en la Base de Datos...
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Se Produjo un Error Interno del Servidor...
+
+  /pets/mockingpets:
+    get:
+      summary: Generación de 100 Mascotas en Modo Mock para Testing.
+      tags:
+        - Pets
+      responses:
+        "200":
+          description: Lista de las Mascotas Generadas en Modo Mock.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Pet"
+        "500":
+          description: Se Produjo un Error Interno del Servidor...
+
+components:
+  schemas:
+    Pet:
+      type: object
+      properties:
+        id:
+          type: string
+          description: ID de la Mascota.
+          example: "641f2b1e0c123456789abcd0"
+        name:
+          type: string
+          example: "Pumba"
+        specie:
+          type: string
+          example: "Canino"
+        birthDate:
+          type: string
+          format: date
+          example: "2016-04-10"
+        imageUrl:
+          type: string
+          nullable: true
+          description: URL para la Imagen de la Mascota.
+
+    PetUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "Pumba"
+        specie:
+          type: string
+          example: "Canino"
+        birthDate:
+          type: string
+          format: date
+          example: "2016-04-10"
+
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "La Mascota no fue Encontrada en la Base de Datos..."

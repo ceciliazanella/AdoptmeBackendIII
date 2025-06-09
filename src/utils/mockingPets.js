@@ -21,6 +21,5 @@ export const generateMockPets = (numPets) => {
       image,
     });
   }
-
   return pets;
 };

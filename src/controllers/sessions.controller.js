@@ -39,7 +39,7 @@ const register = async (req, res, next) => {
 
     const result = await usersService.create(user);
 
-    logger.info(`✅ Usuario ${email} Registrado Éxitosamente!`);
+    logger.info(`✅ El Usuario ${email} fue Registrado Éxitosamente!`);
 
     res.send({ status: "success", payload: result._id });
   } catch (error) {
@@ -80,12 +80,13 @@ const login = async (req, res, next) => {
         new CustomError(400, "Contraseña Incorrecta...", { field: "password" })
       );
     }
+    await usersService.update(user._id, { last_connection: new Date() });
 
     const userDto = UserDTO.getUserTokenFrom(user);
 
     const token = jwt.sign(userDto, "tokenSecretJWT", { expiresIn: "1h" });
 
-    logger.info(`✅ Usuario ${email} Logueado Éxitosamente!`);
+    logger.info(`✅ El Usuario ${email} se ha Logueado Éxitosamente!`);
 
     res
       .cookie("coderCookie", token, { maxAge: 3600000 })
@@ -129,10 +130,12 @@ const unprotectedLogin = async (req, res, next) => {
 
     if (!user) {
       logger.warning(
-        `❌ Unprotected Login: Usuario ${email} no se encuentra...`
+        `❌ Unprotected Login: El Usuario ${email} no se encuentra en la Base de Datos...`
       );
       return next(
-        new CustomError(404, "El Usuario no existe...", { field: "email" })
+        new CustomError(404, "El Usuario no existe en la Base de Datos...", {
+          field: "email",
+        })
       );
     }
 
@@ -176,10 +179,34 @@ const unprotectedCurrent = async (req, res) => {
   }
 };
 
+const logout = async (req, res, next) => {
+  try {
+    const cookie = req.cookies["coderCookie"];
+
+    if (!cookie) {
+      return res
+        .status(400)
+        .send({ status: "error", message: "No hay una Sesión Activa..." });
+    }
+
+    const user = jwt.verify(cookie, "tokenSecretJWT");
+
+    await usersService.update(user._id, { last_connection: new Date() });
+
+    res.clearCookie("coderCookie");
+    logger.info(`✅ El Usuario ${user.email} se ha Deslogueado Correctamente!`);
+    res.send({ status: "success", message: "Logout Éxitoso!" });
+  } catch (error) {
+    logger.error("Hubo un Error en el Logout...", error);
+    next(error);
+  }
+};
+
 export default {
   current,
   login,
   register,
   unprotectedLogin,
   unprotectedCurrent,
+  logout,
 };

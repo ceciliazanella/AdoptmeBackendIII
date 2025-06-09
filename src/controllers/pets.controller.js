@@ -7,11 +7,16 @@ const getAllPets = async (req, res) => {
   try {
     const pets = await petsService.getAll();
 
-    req.logger.info("✅ Se Obtuvieron todas las Mascotas!");
-    res.send({ status: "success", payload: pets });
+    req.logger.info("✅ Se Obtuvieron Todas las Mascotas!");
+    res.send({
+      status: "success",
+      message: "Se Obtuvieron Todas las Mascotas!",
+      payload: pets,
+    });
   } catch (error) {
     req.logger.error(
-      "❌ Hubo un Error al querer Obtener las Mascotas...: " + error.message
+      "❌ Hubo un Error al querer Obtener a Todas las Mascotas...: " +
+        error.message
     );
     res.status(500).send(Errors.GENERAL.SERVER_ERROR);
   }
@@ -22,7 +27,7 @@ const createPet = async (req, res) => {
 
   if (!name || !specie || !birthDate) {
     req.logger.warning(
-      "⚠️ Los Datos están Incompletos para poder Crear una Mascota..."
+      "⚠️ Los Datos están Incompletos para poder Crear una Nueva Mascota..."
     );
     return res.status(400).send(Errors.PET.INCOMPLETE_FIELDS);
   }
