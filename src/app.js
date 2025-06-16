@@ -8,17 +8,17 @@ import { errorHandler } from "./middlewares/errorHandler.js";
 import addLogger from "./middlewares/addLogger.js";
 import mocksRouter from "./routes/mocks.router.js";
 import { swaggerDocs } from "./config/swagger.js";
-import swaggerUi from "swagger-ui-express";
-import YAML from "yamljs";
 
 const app = express();
 
+// Logger
 app.use(addLogger);
 
 app.use(express.json());
 
 app.use(cookieParser());
 
+// Rutas
 app.use("/api/mocks", mocksRouter);
 app.use("/api/users", usersRouter);
 app.use("/api/pets", petsRouter);
@@ -38,30 +38,7 @@ app.get("/loggerTest", (req, res) => {
   );
 });
 
-if (process.env.NODE_ENV !== "production") {
-  const adoptionsDoc = YAML.load("./docs/adoptions.yaml");
-
-  const petsDoc = YAML.load("./docs/pets.yaml");
-
-  const sessionsDoc = YAML.load("./docs/sessions.yaml");
-
-  app.use(
-    "/docs/adoptions",
-    swaggerUi.serveFiles(adoptionsDoc),
-    swaggerUi.setup(adoptionsDoc)
-  );
-  app.use(
-    "/docs/pets",
-    swaggerUi.serveFiles(petsDoc),
-    swaggerUi.setup(petsDoc)
-  );
-  app.use(
-    "/docs/sessions",
-    swaggerUi.serveFiles(sessionsDoc),
-    swaggerUi.setup(sessionsDoc)
-  );
-}
-
+// Documentación Swagger ---> /api/docs
 swaggerDocs(app);
 
 app.use(errorHandler);

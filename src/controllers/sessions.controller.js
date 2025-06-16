@@ -6,12 +6,14 @@ import { handleUserError } from "../middlewares/errorHandler.js";
 import { CustomError } from "../middlewares/errorHandler.js";
 import logger from "../utils/logger.js";
 
+const secret = process.env.TOKEN_SECRET || "tokenSecretJWT";
+
 const register = async (req, res, next) => {
   try {
     const { first_name, last_name, email, password } = req.body;
 
     if (!first_name || !last_name || !email || !password) {
-      logger.warning("❌ Falló el Registro: Los Datos están Icompletos...");
+      logger.warning("❌ Falló el Registro: Los Datos están Incompletos...");
       return next(
         new CustomError(400, "Los Datos están Incompletos...", {
           field: "all fields",
@@ -40,10 +42,9 @@ const register = async (req, res, next) => {
     const result = await usersService.create(user);
 
     logger.info(`✅ El Usuario ${email} fue Registrado Éxitosamente!`);
-
     res.send({ status: "success", payload: result._id });
   } catch (error) {
-    logger.error("❌ Hubo un Error en el Registro del Usuario...:", error);
+    logger.error("❌ Hubo un Error en el Registro del Usuario...", error);
     next(error);
   }
 };
@@ -53,7 +54,7 @@ const login = async (req, res, next) => {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      logger.warning("❌ Falta Email o Password para poder Ingresar...");
+      logger.warning("❌ Falta el Email o el Password para poder Ingresar...");
       return next(
         new CustomError(400, "Los Datos están Incompletos...", {
           field: "email and password",
@@ -84,10 +85,9 @@ const login = async (req, res, next) => {
 
     const userDto = UserDTO.getUserTokenFrom(user);
 
-    const token = jwt.sign(userDto, "tokenSecretJWT", { expiresIn: "1h" });
+    const token = jwt.sign(userDto, secret, { expiresIn: "1h" });
 
     logger.info(`✅ El Usuario ${email} se ha Logueado Éxitosamente!`);
-
     res
       .cookie("coderCookie", token, { maxAge: 3600000 })
       .send({ status: "success", message: "Usuario Logueado!" });
@@ -101,7 +101,7 @@ const current = async (req, res) => {
   const cookie = req.cookies["coderCookie"];
 
   try {
-    const user = jwt.verify(cookie, "tokenSecretJWT");
+    const user = jwt.verify(cookie, secret);
 
     if (user) {
       logger.info(`✅ Token Válido para el Usuario ${user.email}!`);
@@ -150,13 +150,14 @@ const unprotectedLogin = async (req, res, next) => {
       );
     }
 
-    const token = jwt.sign(user, "tokenSecretJWT", { expiresIn: "1h" });
+    const userDto = UserDTO.getUserTokenFrom(user);
+
+    const token = jwt.sign(userDto, secret, { expiresIn: "1h" });
 
     logger.info(`✅ Unprotected Login para ${email} Éxitoso!`);
-
     res
-      .cookie("unprotectedCookie", token, { maxAge: 3600000 })
-      .send({ status: "success", message: "Unprotected Logged in..." });
+      .cookie("coderCookie", token, { maxAge: 3600000 })
+      .send({ status: "success", message: "Unprotected Logueado!" });
   } catch (error) {
     logger.error("❌ Hubo un Error en UnprotectedLogin...", error);
     next(error);
@@ -164,18 +165,25 @@ const unprotectedLogin = async (req, res, next) => {
 };
 
 const unprotectedCurrent = async (req, res) => {
-  const cookie = req.cookies["unprotectedCookie"];
+  const token = req.cookies["coderCookie"];
+
+  if (!token) {
+    logger.warning("❌ No se encontró la Cookie en UnprotectedCurrent...");
+    return res
+      .status(401)
+      .send({ status: "error", error: "Desautorizado: No hay Token..." });
+  }
 
   try {
-    const user = jwt.verify(cookie, "tokenSecretJWT");
+    const user = jwt.verify(token, secret);
 
-    if (user) {
-      logger.info(`✅ Token Válido en UnprotectedCurrent para ${user.email}!`);
-      return res.send({ status: "success", payload: user });
-    }
+    logger.info(`✅ Token válido en UnprotectedCurrent para ${user.email}!`);
+    return res.status(200).send({ status: "success", payload: user });
   } catch (error) {
     logger.warning("❌ Token Inválido en UnprotectedCurrent...");
-    return res.status(401).send({ status: "error", error: "Unauthorized..." });
+    return res
+      .status(401)
+      .send({ status: "error", error: "Desautorizado: Token Inválido..." });
   }
 };
 
@@ -189,10 +197,9 @@ const logout = async (req, res, next) => {
         .send({ status: "error", message: "No hay una Sesión Activa..." });
     }
 
-    const user = jwt.verify(cookie, "tokenSecretJWT");
+    const user = jwt.verify(cookie, secret);
 
     await usersService.update(user._id, { last_connection: new Date() });
-
     res.clearCookie("coderCookie");
     logger.info(`✅ El Usuario ${user.email} se ha Deslogueado Correctamente!`);
     res.send({ status: "success", message: "Logout Éxitoso!" });

@@ -3,13 +3,14 @@ import usersController from "../controllers/users.controller.js";
 import logger from "../utils/logger.js";
 import uploader from "../utils/uploader.js";
 import { validateMongoId } from "../middlewares/validateMongoId.js";
+import validateFiles from "../middlewares/validateFiles.js";
 
 const router = Router();
 
 /**
  * @swagger
  * tags:
- *   name: UUSERS
+ *   name: Users
  *   description: Gestión de Usuarios en la Base de Datos.
  */
 
@@ -17,11 +18,11 @@ const router = Router();
  * @swagger
  * /users:
  *   get:
- *     summary: Obtiene a Todos los Usuarios Registrados en la Base de Datos.
+ *     summary: Obtiene a Todos los Usuarios Registrados.
  *     tags: [Users]
  *     responses:
  *       200:
- *         description: Lista de Usuarios.
+ *         description: Lista de Usuarios Obtenida Correctamente!
  *         content:
  *           application/json:
  *             schema:
@@ -29,9 +30,8 @@ const router = Router();
  *               items:
  *                 $ref: '#/components/schemas/User'
  *       500:
- *         description: Error Interno del Servidor...
+ *         description: Se Produjo un Error Interno del Servidor...
  */
-
 router.get("/", (req, res, next) => {
   logger.info("GET /api/users - Cargando a Todos los Usuarios...");
   usersController.getAllUsers(req, res, next);
@@ -41,18 +41,18 @@ router.get("/", (req, res, next) => {
  * @swagger
  * /users/{uid}:
  *   get:
- *     summary: Obtiene un Usuario por su ID.
+ *     summary: Obtiene a un Usuario por su ID.
  *     tags: [Users]
  *     parameters:
  *       - in: path
  *         name: uid
+ *         required: true
  *         schema:
  *           type: string
- *         required: true
- *         description: ID de Mongo del Usuario a Obtener.
+ *         description: ID de Mongo del Usuario.
  *     responses:
  *       200:
- *         description: Usuario Encontrado.
+ *         description: Usuario Encontrado!
  *         content:
  *           application/json:
  *             schema:
@@ -62,12 +62,11 @@ router.get("/", (req, res, next) => {
  *       404:
  *         description: Usuario no encontrado.
  *       500:
- *         description: Error Interno del Servidor.
+ *         description: Se Produjo un Error Interno del Servidor...
  */
-
 router.get("/:uid", validateMongoId("uid"), (req, res, next) => {
   logger.info(
-    `GET /api/users/${req.params.uid} - Obteniendo Usuario por ID...`
+    `GET /api/users/${req.params.uid} - Obteniendo a un Usuario por su ID...`
   );
   usersController.getUser(req, res, next);
 });
@@ -76,36 +75,24 @@ router.get("/:uid", validateMongoId("uid"), (req, res, next) => {
  * @swagger
  * /users/{uid}:
  *   put:
- *     summary: Actualiza / Modifica los Datos de un Usuario por su ID.
+ *     summary: Actualiza / Modifica a los Datos de un Usuario.
  *     tags: [Users]
  *     parameters:
  *       - in: path
  *         name: uid
+ *         required: true
  *         schema:
  *           type: string
- *         required: true
- *         description: ID de Mongo del Usuario a Actualizar.
+ *         description: ID de Mongo del Usuario.
  *     requestBody:
- *       description: Campos / Datos del Usuario a Actualizar / Modificar (Al menos uno...).
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             properties:
- *               name:
- *                 type: string
- *                 example: "Lili Artusa"
- *               email:
- *                 type: string
- *                 format: email
- *                 example: "lili@example.com"
- *               age:
- *                 type: integer
- *                 example: 30
+ *             $ref: '#/components/schemas/UserInput'
  *     responses:
  *       200:
- *         description: Usuario Actualizado / Modificado Correctamente.
+ *         description: Usuario Actualizado / Modificado Correctamente!
  *         content:
  *           application/json:
  *             schema:
@@ -115,12 +102,11 @@ router.get("/:uid", validateMongoId("uid"), (req, res, next) => {
  *       404:
  *         description: Usuario no encontrado.
  *       500:
- *         description: Error Interno del Servidor.
+ *         description: Se Produjo un Error Interno del Servidor...
  */
-
 router.put("/:uid", validateMongoId("uid"), (req, res, next) => {
   logger.info(
-    `PUT /api/users/${req.params.uid} - Actualizando / Modificando los Datos del Usuario...`
+    `PUT /api/users/${req.params.uid} - Actualizando / Modificando a un Usuario...`
   );
   usersController.updateUser(req, res, next);
 });
@@ -129,26 +115,27 @@ router.put("/:uid", validateMongoId("uid"), (req, res, next) => {
  * @swagger
  * /users/{uid}:
  *   delete:
- *     summary: Elimina a un Usuario por su ID.
+ *     summary: Elimina a un Usuario.
  *     tags: [Users]
  *     parameters:
  *       - in: path
  *         name: uid
+ *         required: true
  *         schema:
  *           type: string
- *         required: true
- *         description: ID de Mongo del Usuario a Eliminar.
+ *         description: ID de Mongo del Usuario.
  *     responses:
  *       200:
- *         description: Usuario Eliminado Correctamente.
+ *         description: Usuario Eliminado Correctamente!
  *       404:
  *         description: Usuario no encontrado.
  *       500:
- *         description: Error Interno del Servidor.
+ *         description: Se Produjo un Error Interno del Servidor...
  */
-
 router.delete("/:uid", validateMongoId("uid"), (req, res, next) => {
-  logger.info(`DELETE /api/users/${req.params.uid} - Eliminando Usuario...`);
+  logger.info(
+    `DELETE /api/users/${req.params.uid} - Eliminando a un Usuario...`
+  );
   usersController.deleteUser(req, res, next);
 });
 
@@ -156,14 +143,14 @@ router.delete("/:uid", validateMongoId("uid"), (req, res, next) => {
  * @swagger
  * /users/{uid}/documents:
  *   post:
- *     summary: Sube Documentos y Fotos de Mascotas para un Usuario Específico.
+ *     summary: Sube Documentos y Fotos de las Mascotas del Usuario.
  *     tags: [Users]
  *     parameters:
  *       - in: path
  *         name: uid
+ *         required: true
  *         schema:
  *           type: string
- *         required: true
  *         description: ID de Mongo del Usuario.
  *     requestBody:
  *       required: true
@@ -177,16 +164,14 @@ router.delete("/:uid", validateMongoId("uid"), (req, res, next) => {
  *                 items:
  *                   type: string
  *                   format: binary
- *                 description: Archivos de Documentos del Usuario.
  *               petImage:
  *                 type: array
  *                 items:
  *                   type: string
  *                   format: binary
- *                 description: Imágenes de Mascotas del Usuario.
  *     responses:
  *       200:
- *         description: Documentos y Fotos Subidos Correctamente.
+ *         description: Archivos Subidos Correctamente!
  *         content:
  *           application/json:
  *             schema:
@@ -197,7 +182,7 @@ router.delete("/:uid", validateMongoId("uid"), (req, res, next) => {
  *                   example: success
  *                 message:
  *                   type: string
- *                   example: Documentos y Fotos Agregados Correctamente al Usuario!
+ *                   example: Documentos y Fotos Agregados Correctamente!
  *                 payload:
  *                   type: object
  *                   properties:
@@ -224,54 +209,49 @@ router.delete("/:uid", validateMongoId("uid"), (req, res, next) => {
  *                             type: string
  *                             example: /img/pets/mascota1.jpg
  *       400:
- *         description: No se Recibieron Archivos para Subir o el UID es Inválido.
+ *         description: No se Recibieron Archivos para Subir...
  *       404:
  *         description: Usuario no encontrado.
  *       500:
- *         description: Error Interno del Servidor.
+ *         description: Se Produjo un Error Interno del Servidor...
  */
-
 router.post(
   "/:uid/documents",
   validateMongoId("uid"),
-  uploader.fields([
-    { name: "documents", maxCount: 5 },
-    { name: "petImage", maxCount: 3 },
-  ]),
+  (req, res, next) => {
+    uploader.fields([
+      { name: "documents", maxCount: 5 },
+      { name: "petImage", maxCount: 3 },
+    ])(req, res, (err) => {
+      if (err) {
+        logger.warn(`Error Multer: ${err.message}`);
+        return res.status(400).json({
+          status: "error",
+          message: err.message,
+        });
+      }
+      next();
+    });
+  },
+  validateFiles,
   async (req, res, next) => {
     try {
-      if (!req.files) {
-        console.log("❌ No se Recibieron Archivos...");
-        return res
-          .status(400)
-          .send({ status: "error", message: "No se Recibieron Archivos..." });
-      }
-
-      console.log("✅ Archivos Recibidos:", req.files);
-
-      const uploadedDocs = Array.isArray(req.files?.documents)
+      logger.info(`Archivos Recibidos: ${Object.keys(req.files).join(", ")}`);
+      req.uploadedDocs = Array.isArray(req.files?.documents)
         ? req.files.documents.map((file) => ({
             name: file.filename,
             path: `/img/documents/${file.filename}`,
           }))
         : [];
-
-      const uploadedPets = Array.isArray(req.files?.petImage)
+      req.uploadedPets = Array.isArray(req.files?.petImage)
         ? req.files.petImage.map((file) => ({
             name: file.filename,
             path: `/img/pets/${file.filename}`,
           }))
         : [];
-
-      req.uploadedDocs = uploadedDocs;
-      req.uploadedPets = uploadedPets;
-
-      return usersController.addDocumentsToUser(req, res, next);
+      await usersController.addDocumentsToUser(req, res, next);
     } catch (error) {
-      console.error(
-        "❌ Hubo un Error en la Ruta POST /:uid/documents...",
-        error
-      );
+      logger.error(`Error en POST /:uid/documents: ${error.message}`);
       next(error);
     }
   }

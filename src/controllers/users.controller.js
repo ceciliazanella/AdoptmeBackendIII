@@ -70,9 +70,7 @@ const updateUser = async (req, res, next) => {
       );
       return next(new CustomError(404, Errors.USER.USER_NOT_FOUND.message));
     }
-
     await usersService.update(userId, updateBody);
-
     logger.info(
       `✅ El Usuario con el ID ${userId} fue Actualizado Correctamente!`
     );
@@ -101,15 +99,13 @@ const deleteUser = async (req, res, next) => {
       );
       return next(new CustomError(404, Errors.USER.USER_NOT_FOUND.message));
     }
-
     await usersService.delete(userId);
-
     logger.info(
       `✅ El Usuario con el ID ${userId} fue Eliminado Correctamente!`
     );
     res.send({
       status: "success",
-      message: "Usuario Eliminado Correctamente.",
+      message: "Usuario Eliminado Correctamente!",
     });
   } catch (error) {
     logger.error("❌ Hubo un Error al querer Eliminar al Usuario...", error);
@@ -121,9 +117,25 @@ const addDocumentsToUser = async (req, res, next) => {
   try {
     const userId = req.params.uid;
 
-    const documents = req.uploadedDocs || [];
+    const documents = req.files?.documents || [];
 
-    const pets = req.uploadedPets || [];
+    const pets = req.files?.petImage || [];
+
+    const formattedDocs = documents.map((file) => ({
+      filename: file.filename,
+      originalname: file.originalname,
+      mimetype: file.mimetype,
+      path: file.path,
+      size: file.size,
+    }));
+
+    const formattedPets = pets.map((file) => ({
+      filename: file.filename,
+      originalname: file.originalname,
+      mimetype: file.mimetype,
+      path: file.path,
+      size: file.size,
+    }));
 
     const user = await usersService.getUserById(userId);
 
@@ -135,21 +147,22 @@ const addDocumentsToUser = async (req, res, next) => {
     }
 
     const updatedDocs = user.documents
-      ? [...user.documents, ...documents]
-      : [...documents];
+      ? [...user.documents, ...formattedDocs]
+      : [...formattedDocs];
 
-    const updatedPets = user.pets ? [...user.pets, ...pets] : [...pets];
-
+    const updatedPets = user.pets
+      ? [...user.pets, ...formattedPets]
+      : [...formattedPets];
     await usersService.update(userId, {
       documents: updatedDocs,
       pets: updatedPets,
     });
     logger.info(
-      `✅ Documentos y Mascotas Agregados Correctamente al Usuario ${userId}!`
+      `✅ Documentos y Fotos Agregados Correctamente al Usuario ${userId}!`
     );
     res.send({
       status: "success",
-      message: "Documentos y Mascotas Agregados Correctamente al Usuario!",
+      message: "Documentos y Fotos Agregados Correctamente al Usuario!",
       payload: {
         documents: updatedDocs,
         pets: updatedPets,

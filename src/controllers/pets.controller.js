@@ -31,7 +31,6 @@ const createPet = async (req, res) => {
     );
     return res.status(400).send(Errors.PET.INCOMPLETE_FIELDS);
   }
-
   try {
     const pet = PetDTO.getPetInputFrom({ name, specie, birthDate });
 
@@ -61,11 +60,10 @@ const updatePet = async (req, res) => {
 
     if (!result) {
       req.logger.warning(
-        `⚠️ No se encontró la Mascota con el ID ${petId} en la Base de Datos...`
+        `⚠️ No se encontró a la Mascota con el ID ${petId} en la Base de Datos...`
       );
       return res.status(404).send(Errors.PET.PET_NOT_FOUND);
     }
-
     req.logger.info(
       `✅ Los Datos de la Mascota ${petId} fueron Actualizados con Éxito!`
     );
@@ -91,11 +89,10 @@ const deletePet = async (req, res) => {
 
     if (!result) {
       req.logger.warning(
-        `⚠️ No se encontró la Mascota con el ID ${petId} en la Base de Datos para poder Eliminarla...`
+        `⚠️ No se encontró a la Mascota con el ID ${petId} en la Base de Datos para poder Eliminarla...`
       );
       return res.status(404).send(Errors.PET.PET_NOT_FOUND);
     }
-
     req.logger.info(`✅ La Mascota ${petId} fue Eliminada Correctamente!`);
     res.send({
       status: "success",
@@ -104,7 +101,7 @@ const deletePet = async (req, res) => {
     });
   } catch (error) {
     req.logger.error(
-      "❌ Hubo un Error al querer Eliminar esta Mascota...: " + error.message
+      "❌ Hubo un Error al querer Eliminar a esta Mascota...: " + error.message
     );
     res.status(500).send(Errors.GENERAL.SERVER_ERROR);
   }
@@ -121,7 +118,6 @@ const createPetWithImage = async (req, res) => {
     );
     return res.status(400).send(Errors.PET.INCOMPLETE_FIELDS);
   }
-
   try {
     const pet = PetDTO.getPetInputFrom({
       name,

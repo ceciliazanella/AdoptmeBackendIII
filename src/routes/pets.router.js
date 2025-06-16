@@ -10,7 +10,7 @@ const router = Router();
 /**
  * @swagger
  * tags:
- *   name: PETS
+ *   name: Pets
  *   description: Gestión de Mascotas en la Base de Datos.
  */
 
@@ -18,11 +18,11 @@ const router = Router();
  * @swagger
  * /pets:
  *   get:
- *     summary: Obtención de todas las Mascotas Registradas en la Base de Datos.
+ *     summary: Obtener a Todas las Mascotas Registradas.
  *     tags: [Pets]
  *     responses:
  *       200:
- *         description: Devuelve una Lista de Mascotas.
+ *         description: Lista de Mascotas.
  *         content:
  *           application/json:
  *             schema:
@@ -32,7 +32,6 @@ const router = Router();
  *       500:
  *         description: Se Produjo un Error Interno del Servidor...
  */
-
 router.get("/", (req, res, next) => {
   logger.info("GET /api/pets - Obteniendo a Todas las Mascotas...");
   petsController.getAllPets(req, res, next);
@@ -42,11 +41,13 @@ router.get("/", (req, res, next) => {
  * @swagger
  * /pets:
  *   post:
- *     summary: Registración / Creación de una Nueva Mascota (Sin Imagen).
+ *     summary: Registrar a una Nueva Mascota (Sin Imagen).
  *     tags: [Pets]
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
- *       description: Datos para poder Registrar / Crear una Nueva Mascota.
  *       required: true
+ *       description: Datos de la Nueva Mascota.
  *       content:
  *         application/json:
  *           schema:
@@ -58,29 +59,35 @@ router.get("/", (req, res, next) => {
  *             properties:
  *               name:
  *                 type: string
- *                 example: "Pumba"
+ *                 example: Pumba
  *               specie:
  *                 type: string
- *                 example: "Canino"
+ *                 example: Canino
  *               birthDate:
  *                 type: string
  *                 format: date
- *                 example: "2016-04-10"
+ *                 example: 2016-04-10
  *     responses:
  *       201:
- *         description: La Mascota fue Registrada / Creada con Éxito!
+ *         description: Mascota Registrada Éxitosamente!
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Pet'
  *       400:
- *         description: Los Datos Ingresados son Inválidos o están Incompletos...
+ *         description: Datos Inválidos o Incompletos.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
  *       500:
  *         description: Se Produjo un Error Interno del Servidor...
  */
-
 router.post("/", (req, res, next) => {
-  logger.info("POST /api/pets - Creando una Nueva Mascota...");
+  logger.info("POST /api/pets - Creando a una Nueva Mascota...");
   petsController.createPet(req, res, next);
 });
 
@@ -88,11 +95,13 @@ router.post("/", (req, res, next) => {
  * @swagger
  * /pets/withimage:
  *   post:
- *     summary: Creación / Registración de una Nueva Mascota (Con Imagen).
+ *     summary: Registrar a una Nueva Mascota con Imagen.
  *     tags: [Pets]
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
- *       description: Formulario para poder Registrar / Crear una Nueva Mascota con su Imagen.
  *       required: true
+ *       description: Datos de la Mascota y Archivo de la Imagen.
  *       content:
  *         multipart/form-data:
  *           schema:
@@ -105,34 +114,38 @@ router.post("/", (req, res, next) => {
  *             properties:
  *               name:
  *                 type: string
- *                 example: "Olivia"
+ *                 example: Olivia
  *               specie:
  *                 type: string
- *                 example: "Felino"
+ *                 example: Felino
  *               birthDate:
  *                 type: string
  *                 format: date
- *                 example: "2014-04-13"
+ *                 example: 2014-04-13
  *               image:
  *                 type: string
  *                 format: binary
  *     responses:
  *       201:
- *         description: La Mascota fue Registrada / Creada con su Imagen Correctamente!
+ *         description: Mascota Registrada con Imagen.
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Pet'
  *       400:
- *         description: Los Datos Ingresados son Inválidos o Falta la Imagen de la Mascota...
+ *         description: Datos Inválidos o Imagen Faltante.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
  *       500:
  *         description: Se Produjo un Error Interno del Servidor...
  */
-
 router.post("/withimage", uploader.single("image"), (req, res, next) => {
-  logger.info(
-    "POST /api/pets/withimage - Creando una Mascota con su Imagen..."
-  );
+  logger.info("POST /api/pets/withimage - Creando a una Mascota con Imagen...");
   petsController.createPetWithImage(req, res, next);
 });
 
@@ -140,19 +153,21 @@ router.post("/withimage", uploader.single("image"), (req, res, next) => {
  * @swagger
  * /pets/{pid}:
  *   put:
- *     summary: Actualización / Modificación de los Datos de una Mscota ya Existente en la Base de Datos.
+ *     summary: Actualizar / Modificar a una Mascota por su ID.
  *     tags: [Pets]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: pid
- *         description: ID de Identificación de la Mascota a Actualizar / Modificar.
  *         required: true
+ *         description: ID de la Mascota.
  *         schema:
  *           type: string
- *           example: "60f71adf3b1d4c001c8b4567"
+ *           example: 60f71adf3b1d4c001c8b4567
  *     requestBody:
- *       description: Campos de Datos a Actualizar / Modificar (Al menos uno).
  *       required: true
+ *       description: Campos a Modificar.
  *       content:
  *         application/json:
  *           schema:
@@ -167,19 +182,18 @@ router.post("/withimage", uploader.single("image"), (req, res, next) => {
  *                 format: date
  *     responses:
  *       200:
- *         description: La Mascota fue Actualizada / Modificada Correctamente!
+ *         description: Mascota Actualizada Correctamente!
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Pet'
  *       400:
- *         description: Los Datos son Inválidos...
+ *         description: Datos Inválidos.
  *       404:
- *         description: La Mascota no fue Encontrada o no Existe en la Base de Datos...
+ *         description: Mascota no encontrada.
  *       500:
  *         description: Se Produjo un Error Interno del Servidor...
  */
-
 router.put("/:pid", validateMongoId("pid"), (req, res, next) => {
   logger.info(
     `PUT /api/pets/${req.params.pid} - Actualizando / Modificando Mascota...`
@@ -191,27 +205,45 @@ router.put("/:pid", validateMongoId("pid"), (req, res, next) => {
  * @swagger
  * /pets/{pid}:
  *   delete:
- *     summary: Eliminación de una Mascota por su ID de la Base de Datos.
+ *     summary: Eliminar a una Mascota por su ID.
  *     tags: [Pets]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: pid
- *         description: ID de la Mascota a Eliminar.
  *         required: true
+ *         description: ID de la Mascota.
  *         schema:
  *           type: string
- *           example: "60f71adf3b1d4c001c8b4567"
+ *           example: 60f71adf3b1d4c001c8b4567
  *     responses:
  *       200:
- *         description: La Mascota fue Eliminada de la Base de Datos con Éxito!
+ *         description: Mascota Eliminada Éxitosamente!
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Mascota Eliminada Éxitosamente!
  *       404:
- *         description: La Mascota Búscada no se encuentra en la Base de Datos...
+ *         description: Mascota no encontrada.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
  *       500:
  *         description: Se Produjo un Error Interno del Servidor...
  */
-
 router.delete("/:pid", validateMongoId("pid"), (req, res, next) => {
-  logger.info(`DELETE /api/pets/${req.params.pid} - Eliminando Mascota...`);
+  logger.info(
+    `DELETE /api/pets/${req.params.pid} - Eliminando a la Mascota...`
+  );
   petsController.deletePet(req, res, next);
 });
 
@@ -219,11 +251,11 @@ router.delete("/:pid", validateMongoId("pid"), (req, res, next) => {
  * @swagger
  * /pets/mockingpets:
  *   get:
- *     summary: Generación y Obtención de 100 Mascotas en Modo Prueba (Mock).
+ *     summary: Obtener 100 Mascotas Generadas en Modo Mock.
  *     tags: [Pets]
  *     responses:
  *       200:
- *         description: Lista de Mascotas Generadas en Modo Mock.
+ *         description: Lista de Mscotas Generadas.
  *         content:
  *           application/json:
  *             schema:
@@ -231,13 +263,20 @@ router.delete("/:pid", validateMongoId("pid"), (req, res, next) => {
  *               items:
  *                 $ref: '#/components/schemas/Pet'
  *       500:
- *         description: Se Produjo un Error al querer Generar a las Mascotas en Modo Mock...
+ *         description: Se Produjo un Error al querer Generar Mascotas Mock.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Se Produjo un Error al querer Generar Mascotas Mock.
  */
-
 router.get("/mockingpets", (req, res) => {
   try {
     logger.info(
-      "GET /api/pets/mockingpets - Generando Mascotas en Modo Mock..."
+      "GET /api/pets/mockingpets - Generando a Mascotas en Modo Mock..."
     );
 
     const mockPets = generateMockPets(100);
@@ -245,11 +284,11 @@ router.get("/mockingpets", (req, res) => {
     res.status(200).json(mockPets);
   } catch (error) {
     logger.error(
-      "Error al querer Generar las Mascotas en Modo Mock...",
+      "Se Produjo un Error al querer Generar Mascotas Mock...",
       error.message
     );
     res.status(500).json({
-      message: "Hubo un Error al querer Generar a las Mascotas en Tipo Mock...",
+      message: "Error al querer Generar Mascotas en Modo Mock.",
     });
   }
 });

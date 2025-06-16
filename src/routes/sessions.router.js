@@ -7,7 +7,7 @@ const router = Router();
 /**
  * @swagger
  * tags:
- *   name: SESSIONS
+ *   name: Sessions
  *   description: Manejo de la Autenticación y las Sesiones de Usuarios.
  */
 
@@ -18,34 +18,26 @@ const router = Router();
  *     summary: Registro para un Usuario Nuevo en la Base de Datos.
  *     tags: [Sessions]
  *     requestBody:
- *       description: Información / Datos para poder Registrar a un Nuevo Usuario.
+ *       description: Información para Registrar a un Nuevo Usuario.
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             required:
- *               - email
- *               - password
- *             properties:
- *               email:
- *                 type: string
- *                 format: email
- *                 example: "usuario@example.com"
- *               password:
- *                 type: string
- *                 example: "pass123"
+ *             $ref: '#/components/schemas/UserCredentials'
  *     responses:
  *       201:
- *         description: El Usuario se Registró con Éxito!
+ *         description: Registro Éxitoso!
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/SessionResponse'
  *       400:
- *         description: Los Datos están Incompletos o son Inválidos...
+ *         description: Datos Inválidos o Faltantes.
  *       409:
- *         description: Este Usuario ya Existe en la Base de Datos...
+ *         description: Usuario ya Registrado con ese Email.
  *       500:
- *         description: Se Produjo un Error Interno del Servidor...
+ *         description: Error Interno del Servidor.
  */
-
 router.post("/register", (req, res, next) => {
   logger.info(
     "POST /api/sessions/register - Registrando a un Nuevo Usuario..."
@@ -57,37 +49,31 @@ router.post("/register", (req, res, next) => {
  * @swagger
  * /sessions/login:
  *   post:
- *     summary: Inicio de la Sesión con Email y Contraseña.
+ *     summary: Login / Inicio de Sesión para Usuarios Existentes.
  *     tags: [Sessions]
  *     requestBody:
- *       description: Credenciales / Datos para poder Iniciar Sesión / Login.
+ *       description: Credenciales para Iniciar Sesión.
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             required:
- *               - email
- *               - password
- *             properties:
- *               email:
- *                 type: string
- *                 format: email
- *                 example: "usuario@example.com"
- *               password:
- *                 type: string
- *                 example: "pass123"
+ *             $ref: '#/components/schemas/UserCredentials'
  *     responses:
  *       200:
- *         description: El Usuario Inició Sesión Correctamente!
+ *         description: Login Éxitoso!
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/LoginResponse'
+ *       400:
+ *         description: Datos Inválidos o Faltantes.
  *       401:
- *         description: Los Datos Ingresados son Inválidos...
+ *         description: Credenciales Incorrectas.
  *       500:
- *         description: Se Produjo un Error Interno del Servidor...
+ *         description: Error Interno del Servidor.
  */
-
 router.post("/login", (req, res, next) => {
-  logger.info("POST /api/sessions/login - Iniciando Sesión...");
+  logger.info("POST /api/sessions/login - Intentando Login...");
   sessionsController.login(req, res, next);
 });
 
@@ -95,26 +81,25 @@ router.post("/login", (req, res, next) => {
  * @swagger
  * /sessions/current:
  *   get:
- *     summary: Obtención de los Datos de la Sesión del Usuario Logueado.
+ *     summary: Obtiene la Información del Usuario Logueado (Sesión Activa).
  *     tags: [Sessions]
  *     security:
  *       - bearerAuth: []
  *     responses:
  *       200:
- *         description: Sesión Activa con la Información del Usuario.
+ *         description: Datos del Usuario en Sesión.
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/UserSession'
  *       401:
- *         description: El Usuario no está Logueado con su Sesión...
+ *         description: Token Inválido o Expirado.
  *       500:
- *         description: Se Produjo un Error Interno del Servidor...
+ *         description: Error Interno del Servidor.
  */
-
 router.get("/current", (req, res, next) => {
   logger.info(
-    "GET /api/sessions/current - Obteniendo la Sesión Actual del Usuario..."
+    "GET /api/sessions/current - Obteniendo a un Usuario Logueado..."
   );
   sessionsController.current(req, res, next);
 });
@@ -122,16 +107,39 @@ router.get("/current", (req, res, next) => {
 /**
  * @swagger
  * /sessions/unprotectedLogin:
- *   get:
- *     summary: Endpoint para Login del Usuario sin Protección (Sólo para realizar Pruebas).
+ *   post:
+ *     summary: Login NO protegido (Para Pruebas. Sin Validación de JWT).
  *     tags: [Sessions]
+ *     requestBody:
+ *       description: Credenciales para Iniciar Sesión.
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/UserCredentials'
  *     responses:
  *       200:
- *         description: Se Efectuó el Login del Usuario sin Protección.
+ *         description: Login Éxitoso (Sin Protección).
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 message:
+ *                   type: string
+ *                   example: Sesión Iniciada Sin Protección.
+ *       400:
+ *         description: Datos Inválidos o Faltantes.
+ *       401:
+ *         description: Credenciales Incorrectas.
+ *       500:
+ *         description: Error Interno del Servidor.
  */
-
-router.get("/unprotectedLogin", (req, res, next) => {
-  logger.info("GET /api/sessions/unprotectedLogin - Login no protegido...");
+router.post("/unprotectedLogin", (req, res, next) => {
+  logger.info("POST /api/sessions/unprotectedLogin - Login Sin Protección...");
   sessionsController.unprotectedLogin(req, res, next);
 });
 
@@ -139,15 +147,22 @@ router.get("/unprotectedLogin", (req, res, next) => {
  * @swagger
  * /sessions/unprotectedCurrent:
  *   get:
- *     summary: Obtención de la Sesión del Usuario sin Validación (Sólo para realizar Pruebas).
+ *     summary: Obtiene al Usuario Actual Sin Protección (Sin Validación JWT).
  *     tags: [Sessions]
  *     responses:
  *       200:
- *         description: Se Generó la Sesión Actual sin Protección.
+ *         description: Datos del Usuario.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/UserSession'
+ *       500:
+ *         description: Error Interno del Servidor.
  */
-
 router.get("/unprotectedCurrent", (req, res, next) => {
-  logger.info("GET /api/sessions/unprotectedCurrent - Sesión no protegida...");
+  logger.info(
+    "GET /api/sessions/unprotectedCurrent - Usuario Sin Protección..."
+  );
   sessionsController.unprotectedCurrent(req, res, next);
 });
 
@@ -155,19 +170,16 @@ router.get("/unprotectedCurrent", (req, res, next) => {
  * @swagger
  * /sessions/logout:
  *   post:
- *     summary: Cerrar la Sesión del Usuario y Limpiar la Cookie de Autenticación.
+ *     summary: Cierra la Sesión del Usuario Actual.
  *     tags: [Sessions]
  *     responses:
  *       200:
- *         description: El Logout fue Exitoso!
- *       400:
- *         description: No hay Sesión Activa para Cerrar...
+ *         description: Sesión Cerrada Correctamente!
  *       500:
- *         description: Hubo un Error Interno del Servidor...
+ *         description: Error Interno del Servidor.
  */
-
 router.post("/logout", (req, res, next) => {
-  logger.info("POST /api/sessions/logout - Cerrando la Sesión...");
+  logger.info("POST /api/sessions/logout - Cerrando Sesión...");
   sessionsController.logout(req, res, next);
 });
 

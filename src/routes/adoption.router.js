@@ -8,35 +8,8 @@ const router = Router();
 /**
  * @swagger
  * tags:
- *   name: ADOPTIONS
+ *   name: Adoptions
  *   description: Gestión de las Adopciones de Mascotas.
- */
-
-/**
- * @swagger
- * components:
- *   schemas:
- *     Adoption:
- *       type: object
- *       properties:
- *         id:
- *           type: string
- *           description: ID de la Adopción.
- *         userId:
- *           type: string
- *           description: ID del Usuario Adoptante.
- *         petId:
- *           type: string
- *           description: ID de la Mascota Adoptada.
- *         adoptionDate:
- *           type: string
- *           format: date-time
- *           description: Fecha y Hora de la Adopción.
- *       example:
- *         id: "644b1a7f12cd4567ef890123"
- *         userId: "62d13f9e1a3a7c0012345678"
- *         petId: "62d1401e1a3a7c0012345679"
- *         adoptionDate: "2024-05-15T10:30:00Z"
  */
 
 /**
@@ -45,65 +18,17 @@ const router = Router();
  *   get:
  *     summary: Obtención de Todas las Adopciones Generadas.
  *     tags: [Adoptions]
+ *     security:
+ *       - bearerAuth: []
  *     responses:
  *       200:
- *         description: Lista Completa de Adopciones Generadas.
+ *         description: Lista Completa de las Adopciones Generadas.
  *         content:
  *           application/json:
  *             schema:
  *               type: array
  *               items:
  *                 $ref: '#/components/schemas/Adoption'
- */
-
-router.get("/", (req, res, next) => {
-  logger.info("GET /api/adoptions - Obteniendo Todas las Adopciones...");
-  adoptionsController.getAllAdoptions(req, res, next);
-});
-
-/**
- * @swagger
- * /adoptions/{aid}:
- *   get:
- *     summary: Obtención de una Adopción Específica.
- *     tags: [Adoptions]
- *     parameters:
- *       - name: aid
- *         in: path
- *         required: true
- *         description: ID de la Adopción.
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: Adopción Encontrada con Éxito.
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Adoption'
- *       400:
- *         description: El ID es Inválido.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 status:
- *                   type: string
- *                   example: error
- *                 message:
- *                   type: string
- *                   example: El ID proporcionado es Inválido.
- *       404:
- *         description: Adopción Inexistente.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: string
- *                   example: La Adopción no fue encontrada.
  *       500:
  *         description: Error Interno del Servidor.
  *         content:
@@ -113,9 +38,64 @@ router.get("/", (req, res, next) => {
  *               properties:
  *                 error:
  *                   type: string
- *                   example: Hubo un Error al querer Obtener la Adopción.
  */
+router.get("/", (req, res, next) => {
+  logger.info("GET /api/adoptions - Obteniendo a Todas las Adopciones...");
+  adoptionsController.getAllAdoptions(req, res, next);
+});
 
+/**
+ * @swagger
+ * /adoptions/{aid}:
+ *   get:
+ *     summary: Obtención de una Adopción Específica.
+ *     tags: [Adoptions]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: aid
+ *         in: path
+ *         required: true
+ *         description: ID de la Adopción.
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Adopción Encontrada con Éxito!
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Adoption'
+ *       400:
+ *         description: ID Inválido.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                 message:
+ *                   type: string
+ *       404:
+ *         description: Adopción no encontrada.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *       500:
+ *         description: Error Interno del Servidor.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ */
 router.get("/:aid", validateMongoId("aid"), (req, res, next) => {
   logger.info(
     `GET /api/adoptions/${req.params.aid} - Obteniendo una Adopción Específica...`
@@ -129,30 +109,60 @@ router.get("/:aid", validateMongoId("aid"), (req, res, next) => {
  *   post:
  *     summary: Registración / Creación de una Nueva Adopción.
  *     tags: [Adoptions]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: uid
- *         schema:
- *           type: string
  *         required: true
  *         description: ID del Usuario Adoptante.
- *       - in: path
- *         name: pid
  *         schema:
  *           type: string
+ *       - in: path
+ *         name: pid
  *         required: true
  *         description: ID de la Mascota.
+ *         schema:
+ *           type: string
  *     responses:
- *       200:
- *         description: Mascota Adoptada Éxitosamente.
+ *       201:
+ *         description: Adopción Registrada Éxitosamente!
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Adopción Registrada Éxitosamente!
  *       400:
- *         description: Mascota ya Adoptada o Error de Validación.
+ *         description: La Mascota ya está Adoptada o Hubo un Error de Validación.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
  *       404:
  *         description: Usuario o Mascota no encontrados.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
  *       500:
  *         description: Error Interno del Servidor.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
  */
-
 router.post("/:uid/:pid", (req, res, next) => {
   logger.info(
     `POST /api/adoptions/${req.params.uid}/${req.params.pid} - Creando una Adopción...`
@@ -164,15 +174,17 @@ router.post("/:uid/:pid", (req, res, next) => {
  * @swagger
  * /adoptions/{aid}:
  *   put:
- *     summary: Actualiza / Modifica una Adopción Existente.
+ *     summary: Actualiza / Modifica a una Adopción Existente.
  *     tags: [Adoptions]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: aid
+ *         required: true
+ *         description: ID de la Adopción a Actualizar.
  *         schema:
  *           type: string
- *         required: true
- *         description: ID de la Adopción a Actualizar / Modificar.
  *     requestBody:
  *       required: true
  *       content:
@@ -180,22 +192,42 @@ router.post("/:uid/:pid", (req, res, next) => {
  *           schema:
  *             type: object
  *             properties:
- *               owner:
+ *               userId:
  *                 type: string
- *               pet:
+ *               petId:
  *                 type: string
+ *             example:
+ *               userId: "62d13f9e1a3a7c0012345678"
+ *               petId: "62d1401e1a3a7c0012345679"
  *     responses:
  *       200:
- *         description: Adopción Actualizada / Modificada Éxitosamente.
+ *         description: Adopción Actualizada Éxitosamente!
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Adoption'
  *       404:
  *         description: La Adopción no fue encontrada.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
  *       500:
  *         description: Error Interno del Servidor.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
  */
-
 router.put("/:aid", validateMongoId("aid"), (req, res, next) => {
   logger.info(
-    `PUT /api/adoptions/${req.params.aid} - Actualizando / Modificando una Adopción...`
+    `PUT /api/adoptions/${req.params.aid} - Actualizando a una Adopción...`
   );
   adoptionsController.updateAdoption(req, res, next);
 });
@@ -206,25 +238,48 @@ router.put("/:aid", validateMongoId("aid"), (req, res, next) => {
  *   delete:
  *     summary: Elimina una Adopción por su ID.
  *     tags: [Adoptions]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: aid
- *         schema:
- *           type: string
  *         required: true
  *         description: ID de la Adopción a Eliminar.
+ *         schema:
+ *           type: string
  *     responses:
  *       200:
- *         description: Adopción Eliminada Correctamente.
+ *         description: Adopción Eliminada Correctamente!
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Adopción Eliminada Correctamente!
  *       404:
- *         description: La Adopción no se encontró.
+ *         description: La Adopción no fue encontrada.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
  *       500:
  *         description: Error Interno del Servidor.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
  */
-
 router.delete("/:aid", validateMongoId("aid"), (req, res, next) => {
   logger.info(
-    `DELETE /api/adoptions/${req.params.aid} - Eliminando una Adopción...`
+    `DELETE /api/adoptions/${req.params.aid} - Eliminando a una Adopción...`
   );
   adoptionsController.deleteAdoption(req, res, next);
 });
