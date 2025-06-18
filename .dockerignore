@@ -1,2 +1,3 @@
 ./src/config/estoEsUnaPrueba.js
 node_modules
+.env
