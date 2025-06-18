@@ -1,6 +1,2 @@
 ./src/config/estoEsUnaPrueba.js
 node_modules
-test
-Dockerfile
-.dockerignore
-.env
