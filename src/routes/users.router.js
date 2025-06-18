@@ -224,7 +224,7 @@ router.post(
       { name: "petImage", maxCount: 3 },
     ])(req, res, (err) => {
       if (err) {
-        logger.warn(`Error Multer: ${err.message}`);
+        logger.warning(`Error Multer: ${err.message}`);
         return res.status(400).json({
           status: "error",
           message: err.message,
